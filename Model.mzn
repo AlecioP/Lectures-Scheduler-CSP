@@ -1,4 +1,5 @@
-
+int: Break;
+int: End;
 %Total number of presentations
 int: N;
 %Total number of available meeting rooms
@@ -17,20 +18,21 @@ array[1..N]of var 1..N: T;
 
 constraint forall(ev in 1..N)(
     let{
-        var int: partial=sum(x in 1..N)(if D[ev]==D[x] /\ M[x]<M[ev] then Len[x] else 0 endif)
+        var int: partial=sum(x in 1..N)(if D[ev]==D[x] /\ M[x]<M[ev] then Len[x] else 0 endif);
     }in
-    if partial < 240 /\ partial+Len[ev]<240 then
+    if (partial < Break) /\ ((partial+Len[ev])<Break) then
           T[ev]=partial
-    elseif partial < 240 /\ partial+Len[ev]>=240 then
-          T[ev]=240
-    elseif partial > 240 then
+    elseif (partial < Break) /\ ((partial+Len[ev])>=Break) then
+          T[ev]=Break
+    elseif (partial > Break) then
           T[ev]=partial
-    else true endif
+    else false endif
     
 );
 
 %All different in the same day (i<j to break symmetry)
 constraint forall(i in 1..N,j in 1..N where D[i]=D[j] /\ i<j)( M[i]!=M[j]);
+%No solution where exists one day with M containing 3 and 5 but not 4 
 constraint forall(day in 1..Y)(
 forall(ev in 1..N where D[ev]=day)(
 if not exists(ev1 in 1..N)(D[ev]=D[ev1] /\ M[ev1]=M[ev]+1) then
@@ -38,12 +40,13 @@ if not exists(ev1 in 1..N)(D[ev]=D[ev1] /\ M[ev1]=M[ev]+1) then
 endif
 )
 );
+%No solution where exists one day with M containing 2 but not 1
 constraint forall(day in 1..Y)(
 if exists(ev in 1..N)(D[ev]=day)then
     exists(ev1 in 1..N)(D[ev1]=day /\ M[ev1]=1)
 endif
 );
-
-constraint forall(i in 1..N)(T[i]<600 /\ T[i]+Len[i]<600);
+%Each event starts and ends before the end of the day
+constraint forall(i in 1..N)(T[i]<End /\ T[i]+Len[i]<End);
 
 solve satisfy;
