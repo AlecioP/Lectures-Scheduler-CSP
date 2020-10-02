@@ -1,5 +1,6 @@
-int: Break;
-int: End;
+int : Break;
+int : End;
+int : Noon = End-Break;
 %Total number of presentations
 int: N;
 %Total number of available meeting rooms
@@ -11,24 +12,13 @@ array[1..N]of int : Len;
 
 %The day assigned to each presentation
 array[1..N]of var 1..Y: D;
-
+%%%
 array[1..N]of var 1..N: M;
 
-array[1..N]of var 1..N: T;
-
-constraint forall(ev in 1..N)(
-    let{
-        var int: partial=sum(x in 1..N)(if D[ev]==D[x] /\ M[x]<M[ev] then Len[x] else 0 endif);
-    }in
-    if (partial < Break) /\ ((partial+Len[ev])<Break) then
-          T[ev]=partial
-    elseif (partial < Break) /\ ((partial+Len[ev])>=Break) then
-          T[ev]=Break
-    elseif (partial > Break) then
-          T[ev]=partial
-    else false endif
-    
-);
+constraint assert(N>0,"Error: num presentations");
+%constraint assert(X>0,"Error: num rooms");
+constraint assert(Y>0,"Error: num days");
+constraint forall(i in 1..N)(assert(Len[i]>0,"Error: Len"++show(i)));
 
 %All different in the same day (i<j to break symmetry)
 constraint forall(i in 1..N,j in 1..N where D[i]=D[j] /\ i<j)( M[i]!=M[j]);
@@ -46,7 +36,19 @@ if exists(ev in 1..N)(D[ev]=day)then
     exists(ev1 in 1..N)(D[ev1]=day /\ M[ev1]=1)
 endif
 );
-%Each event starts and ends before the end of the day
-constraint forall(i in 1..N)(T[i]<End /\ T[i]+Len[i]<End);
+
+constraint forall(i in 1..Y)(
+        sum(j in 1..N)(if D[j]==i then Len[j] else 0 endif )<End
+);
+
+constraint forall(i in 1..Y)(
+      forall(j in 1..N where D[j]=i)(
+      let{var int : partial = sum(x in 1..N)(if D[j]==D[x] /\ M[x]<M[j] then Len[x]else 0 endif)}in
+         if partial < Break /\ partial+Len[j]>=Break then
+               /*(240-partial)+ */
+               sum(z in 1..N)(if D[j]==D[z] /\ M[z]>=M[j] then Len[z] else 0 endif)<Noon
+         endif
+      )
+);
 
 solve satisfy;
