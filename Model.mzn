@@ -1,3 +1,4 @@
+% Use this editor as a MiniZinc scratch book
 %Start of the Break
 int : Break;
 %End of the Break
@@ -57,14 +58,15 @@ constraint forall(i in 1..Y)(forall(r in 1..X)(
 ));
 
 %Break constraint
-constraint forall(i in 1..Y)(
-      forall(j in 1..N where D[j]=i)(
-      let{var int : partial = sum(x in 1..N)(if D[j]==D[x] /\ M[x]<M[j] then Len[x]else 0 endif)}in
+constraint forall(i in 1..Y)(forall(r in 1..X)(
+      forall(j in 1..N where D[j]=i /\ R[j]=r)(
+      let{var int : partial = sum(x in 1..N)(if D[j]=D[x] /\ R[j]=R[x] /\ M[x]<M[j] then Len[x]else 0 endif)}in
          if partial < Break /\ partial+Len[j]>=Break then
                /*(240-partial)+ */
-               sum(z in 1..N)(if D[j]==D[z] /\ M[z]>=M[j] then Len[z] else 0 endif)<Noon
+               sum(z in 1..N)(if D[j]==D[z] /\ R[j]=R[z]  /\ M[z]>=M[j] then Len[z] else 0 endif)<Noon
          endif
       )
+   )
 );
 
 /*
@@ -182,5 +184,10 @@ constraint
          Choice[part,ev]*I[part,ev]
     ))
 ;
-
+constraint forall(part in 1..P)(
+forall(ev1 in 1..N,ev2 in 1..N where ev1<ev2 /\ D[ev1]=D[ev2] /\ ((start(ev1)>=start(ev2)/\ start(ev1)<start(ev2)+Len[ev2]) \/ (start(ev2)>=start(ev1)/\ start(ev2)<start(ev1)+Len[ev1]) ))(
+if Choice[part,ev1]=1 then Choice[part,ev2]=0 endif /\ if Choice[part,ev2]=1 then Choice[part,ev1]=0 endif
+)
+);
+constraint (Y*X*End)>sum(i in 1..N)(Len[i]);
 solve maximize score;
