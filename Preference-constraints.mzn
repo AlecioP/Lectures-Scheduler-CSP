@@ -1,4 +1,4 @@
-include "lib.mzn"
+
 %%%%%%%%%%%%%%%%%%%%%%%%%-----DECISION-VARIABLES-(2)-----%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Matrix of the choices for each participant and each event

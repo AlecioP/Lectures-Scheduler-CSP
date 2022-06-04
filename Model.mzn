@@ -1,3 +1,4 @@
+include "lib.mzn";
 %%%%%%%%%%%%%%%%%%%%%%%%%-----MODEL-PARAMETERS-----%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %Start of the Break
@@ -51,7 +52,8 @@ constraint forall(i in 1..N,j in 1..N where D[i]=D[j] /\ R[i]=R[j] /\ i<j)( M[i]
 
 
 
-%No solution where exists one day with M containing 3 and 5 but not 4 
+% Force assign first position of the day for each room and day
+% Force assign continuos positions from the first on
 
 constraint forall(day in 1..Y,room in 1..X)(
   forall(ev in 1..N where D[ev]=day /\ R[ev]=room /\ M[ev]>1)(
@@ -59,65 +61,40 @@ constraint forall(day in 1..Y,room in 1..X)(
     exists(ev2 in 1..N)(D[ev2]=day /\ R[ev2]=room /\ M[ev2]=1)
   )
 );
-/*
-% Previous version
-constraint forall(day in 1..Y)(forall(room in 1..X)(
-forall(ev in 1..N where D[ev]=day /\ R[ev]=room)(
-if not exists(ev1 in 1..N)(D[ev]=D[ev1] /\ R[ev]=R[ev1] /\ M[ev1]=M[ev]+1) then
-      not exists(ev2 in 1..N)(D[ev]=D[ev2] /\ R[ev]=R[ev2] /\ M[ev2]>M[ev]) 
-endif
-)
-));
 
-%No solution where exists one day with M containing 2 but not 1
-
-constraint forall(day in 1..Y)(forall(room in 1..X)(
-if exists(ev in 1..N)(D[ev]=day /\ R[ev]=room)then
-    exists(ev1 in 1..N)(D[ev1]=day /\ R[ev1]=room /\ M[ev1]=1)
-endif
-));
-*/
 
 %Total len sum in a day and room fits in available time in each day
 constraint forall(day in 1..Y,room in 1..X)( %for each day AND for each room
-        sum(ev in 1..N)(if D[ev]=day /\ R[ev]=room then Len[ev] else 0 endif )< (Noon-60)
+        sum(ev in 1..N)(if D[ev]=day /\ R[ev]=room then Len[ev] else 0 endif )<= (Noon-60)
 );
 
 
 %Break constraint
-constraint forall(i in 1..Y)(forall(r in 1..X)(
-      forall(ev in 1..N where D[ev]=i /\ R[ev]=r)(
-      let{
-        var int : partial = 
-          sum(ev1 in 1..N)(
-            if D[ev]=D[ev1] /\ R[ev]=R[ev1] /\ M[ev1]<M[ev] 
-              then Len[ev1]
-              else 0
-            endif)
-      }in
-      % If starts before break and it's too long to fit in the morning, 
-      % then should be the first in the afternoon.
-         
-      % Let's make sure that everything fits in the afternoon
-        if partial < Break /\ partial+Len[ev]>=Break then
-          sum(ev2 in 1..N)(
-            if D[ev]=D[ev2] /\ R[ev]=R[ev2]  /\ M[ev2]>=M[ev] 
-              then Len[ev2] 
-              else 0 
-            endif)< (Noon-End)
-         endif
-      )
-   )
+constraint forall(day in 1..Y,room in 1..X)(
+  forall(ev in 1..N where D[ev] = day /\ R[ev] = room /\ is_first_afternoon(ev))(
+    sum(ev1 in 1..N where D[ev1]=day /\ R[ev1] = room /\ M[ev1]>=M[ev])(Len[ev1]) <= Noon-End
+  )
 );
 
 
 % Make sure the total time available is enough to fit every event 
 constraint (Y*X*(Noon-60))>totLen;
 
-%%%%%%%%%%%%%%%%%%%%%%%%%---FORCE-USING-FIRST-DAY-%%%%%%%%%%%%%%%%%%%
-constraint if exists (ev in 1..N)(D[ev]>1) then exists (ev1 in 1..N)( D[ev1]=1) endif;
+% Force using first day available
+% Force using continuos days from the first on
 
-constraint forall(ev in 1..N where D[ev]>1)(exists(ev1 in 1..N)(D[ev]=D[ev1]+1));
+constraint forall(ev in 1..N where D[ev]>1)( %If an event is not scheduled in first day 
+  exists(ev2 in 1..N)(D[ev]=1) /\ % At least one should be scheduled into first day
+  exists(ev1 in 1..N)(D[ev]=D[ev1]+1) % and also one per day until the day of EV
+);
+
+constraint forall(day in 1..Y,room in 1..X)(
+  forall(ev in 1..N where D[ev]=day /\ R[ev]=room)(
+   if not exists(ev1 in 1..N)(D[ev1]=day /\ R[ev1]=room /\ M[ev1]>M[ev]) then 
+    not exists(ev2 in 1..N where D[ev2]>day \/ R[ev2]>room)(Len[ev2]<= Noon-start(ev))
+   endif
+  )
+);
 
 
 % ONLY ONE OF THE FOLLOWING TWO LINES
