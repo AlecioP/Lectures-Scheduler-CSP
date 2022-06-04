@@ -1,5 +1,9 @@
 # Lectures-Scheduler-CSP
-End course project for Artificial Intelligence exam (Master degree in Computer science @unibo.it)
+Minizinc program to model a scheduling of lectures within a conference. Each conference has an host who can also attend to other lectures. The model tries to maximize the overall satisfaction of each person attending the conference. The satisfaction is based on the interest each person expresses _a priori_ to each lecture. The final user of the model can define the number of days available for the conference, the number of rooms available each day and the time available each day. The user can also define a break during each day.
+
+
+
+_End course project for Artificial Intelligence exam (Master degree in Computer science @unibo.it)_
 
 # Input data for _Minizinc_ model
 
