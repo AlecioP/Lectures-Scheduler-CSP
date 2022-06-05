@@ -31,6 +31,8 @@ function var int: start(var int: ev ) =(
     endif  
 );
 
+function var int : finish(var int : ev) = start(ev)+Len[ev];
+
 predicate is_first_afternoon(var int : ev) = (
     let {
     var int : day = D[ev];
@@ -41,7 +43,31 @@ predicate is_first_afternoon(var int : ev) = (
       sum(ev1 in 1..N)(if D[ev1]=day /\ R[ev1]=room /\ M[ev1]<pos then Len[ev1] else 0 endif);
   }in
   
-  timebefore <= Break /\ timebefore + len > Break
+  (timebefore <= Break) /\ ( (timebefore + len) > Break)
 );
 
 predicate is_used(int : day, int : room) = exists(ev in 1..N)(D[ev]=day /\ R[ev]=room);
+
+predicate is_last_day(var int : ev) = 
+  not exists(ev1 in 1..N)( D[ev]=D[ev1] /\ R[ev]=R[ev1] /\ M[ev]<M[ev1]);
+  
+predicate continuity() =
+forall(e in 1..N)(
+  if M[e] > 1 then
+    forall(pos in 1..(M[e]-1))(
+      exists(e1 in 1..N)(D[e1]=D[e] /\ R[e1]=R[e] /\ M[e1] = pos)
+    )
+  else % M=1
+    if R[e] > 1 then
+      forall(room in 1..(R[e]-1))(
+        exists(e2 in 1..N)(D[e2]=D[e] /\ R[e2]=room /\ M[e2]=1)
+      )
+    else % M=1 AND R=1
+      if D[e] > 1 then
+        exists(e3 in 1..N)(D[e3]=D[e]-1 /\ R[e3]=X /\ M[e3]=1)
+      else % M=1 AND R=1 AND D=1
+        not exists(e4 in 1..N where e4!=e)(D[e4]=1 /\ R[e4]=1 /\ M[e4]=1)
+      endif
+    endif
+  endif
+);
