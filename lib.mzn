@@ -8,7 +8,7 @@ function var int: start(var int: ev ) =(
     var int : len = Len[ev];
     var int : pos = M[ev];
     var int : timebefore =
-      sum(ev1 in 1..N where D[ev1]=day /\ R[ev1]=room /\ M[ev1]<pos)(Len[ev1]);
+      sum(ev1 in 1..N)( if D[ev1]=day /\ R[ev1]=room /\ M[ev1]<pos then Len[ev1] else 0 endif);
   }in
     if (timebefore + len) <= Break
       then
@@ -24,7 +24,7 @@ function var int: start(var int: ev ) =(
               var int : index = 
                 sum(ev2 in 1..N)(if D[ev2]=day /\ R[ev2]=room /\ is_first_afternoon(ev2) then ev2 else 0 endif);
               var int : pos1 = M[index];
-              var int : timebefore1 = sum(ev3 in 1..N where D[ev3]=day /\ R[ev3]=room /\ M[ev3]>=pos1 /\ M[ev3] < pos)(Len[ev3]);
+              var int : timebefore1 = sum(ev3 in 1..N)(if D[ev3]=day /\ R[ev3]=room /\ M[ev3]>=pos1 /\ M[ev3] < pos then Len[ev3] else 0 endif);
             } in 
               (End + timebefore1)
         endif
@@ -38,8 +38,10 @@ predicate is_first_afternoon(var int : ev) = (
     var int : len = Len[ev];
     var int : pos = M[ev];
     var int : timebefore =
-      sum(ev1 in 1..N where D[ev1]=day /\ R[ev1]=room /\ M[ev1]<pos)(Len[ev1]);
+      sum(ev1 in 1..N)(if D[ev1]=day /\ R[ev1]=room /\ M[ev1]<pos then Len[ev1] else 0 endif);
   }in
   
   timebefore <= Break /\ timebefore + len > Break
 );
+
+predicate is_used(int : day, int : room) = exists(ev in 1..N)(D[ev]=day /\ R[ev]=room);

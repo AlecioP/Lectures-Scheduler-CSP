@@ -1,3 +1,12 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%-----MODEL-PARAMETERS-(2)------%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%Upper bound to objective function
+int : maxInterest = sum(i in 1..P,j in 1..N)(I[i,j]);
+
+%%%%%%%%%%%%%%%%%%%%%%%%%-----ASSERTION-ON-PARAMETERS-(2)-----%%%%%%%%%%%%%%%%%%%%%%%%%
+
+constraint assert(P<=N,"Error : num presenters more than presentations");
+constraint assert(P>0,"Error: num presenters <=0");
 
 %%%%%%%%%%%%%%%%%%%%%%%%%-----DECISION-VARIABLES-(2)-----%%%%%%%%%%%%%%%%%%%%%%%%%
 
