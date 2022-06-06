@@ -39,9 +39,9 @@ for day in range(1,int(max(D)+1)):
     print("Day "+str(day)+" : ")
     for i in range(0,len(F)):
         if(partial<240 and partial + L[ID[i]] >=240):
-            partial=240+L[ID[i]]
-            print("Event "+str(i)+" at 14:00 . Length : "+str(L[ID[i]]))
+            partial=300+L[ID[i]]
+            print("Event "+str(i)+" at 14:00 . Length : "+str(int(L[ID[i]])//60)+"h "+str(int(L[ID[i]])%60)+"m")
         else:
-            print("Event "+str(i)+" at "+str(int(partial)//60+9)+":"+str(int(partial)%60)+" . Length : "+str(L[ID[i]]))
+            print("Event "+str(i)+" at "+str(int(partial)//60+9)+":"+str(int(partial)%60)+" . Length : "+str(int(L[ID[i]])//60)+"h "+str(int(L[ID[i]])%60)+"m")
             partial += L[ID[i]]
 
