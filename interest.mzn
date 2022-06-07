@@ -73,4 +73,5 @@ constraint
 ;
 
 constraint score < maxInterest;
-solve maximize score;
+solve ::int_search(D, first_fail, indomain_min) ::int_search(M, first_fail, indomain_min) maximize score;
+output [show(score)++"\n"++show(Max_per_day)++"\n"++show(Len)++"\n"++show(D)++"\n"++show(M)++"\n"];
