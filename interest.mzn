@@ -13,7 +13,7 @@ constraint assert(P>0,"Error: num presenters <=0");
 %Matrix of the choices for each participant and each event
 array[1..P,1..N]of var 0..1 : Choice;
 %Total satisfaction of participants
-var int : score;
+var int : score :: is_defined_var;
 %%%%%%%%%%%%%%%%%%%%%%%%%-----CONSTRAINTS-TO-MAXIMIZE-OBJECTIVE-----%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -58,7 +58,10 @@ and time
 */
 constraint forall(part in 1..P)(
 forall(ev1 in 1..N,ev2 in 1..N where ev1<ev2 /\ D[ev1]=D[ev2] /\ ((start(ev1)>=start(ev2)/\ start(ev1)<start(ev2)+Len[ev2]) \/ (start(ev2)>=start(ev1)/\ start(ev2)<start(ev1)+Len[ev1]) ))(
-if Choice[part,ev1]=1 then Choice[part,ev2]=0 endif /\ if Choice[part,ev2]=1 then Choice[part,ev1]=0 endif
+  % Since not participating in boot is allowed 
+  % We cannot just write [!=] 
+  Choice[part,ev1]=1 -> Choice[part,ev2]=0 /\
+  Choice[part,ev2]=1 -> Choice[part,ev1]=0
 )
 );
 
@@ -69,9 +72,9 @@ if Choice[part,ev1]=1 then Choice[part,ev2]=0 endif /\ if Choice[part,ev2]=1 the
 constraint 
     score = sum(part in 1..P)(sum(ev in 1..N)(
          Choice[part,ev]*I[part,ev]
-    ))
+    )) ::defines_var(score)
 ;
 
 constraint score < maxInterest;
-solve ::int_search(D, first_fail, indomain_min) ::int_search(M, first_fail, indomain_min) maximize score;
+solve ::seq_search([int_search(D, first_fail, indomain_min), int_search(M, first_fail, indomain_min)]) maximize score;
 output [show(score)++"\n"++show(Max_per_day)++"\n"++show(Len)++"\n"++show(D)++"\n"++show(M)++"\n"];

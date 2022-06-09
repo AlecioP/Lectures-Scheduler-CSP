@@ -23,7 +23,7 @@ array[1..N] of 1..P: H;
 %Total of events lengths
 int : totLen = sum(i in 1..N)(Len[i]);
 %Length of shortest event
-int : Shortest;
+int : Shortest = min(i in 1..N)(Len[i]);
 %Max number of events which can fit in a single day and room
 int : Max_per_day = (Noon-(End-Break)) div Shortest;
 
